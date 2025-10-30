@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.major_project.multilang_ai"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,6 +58,27 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.language.id.common)
+
+    // ✅ Correct navigation dependency
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+
+    // Compose
+    implementation("androidx.compose.ui:ui:1.9.4")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+
+    // Google AI client
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    
+
+    // MLKit
+    implementation("com.google.mlkit:language-id:17.0.6")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,18 +86,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
-    implementation("androidx.compose.ui:ui:1.9.4")
-    implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-
-    // Gemini AI Client
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
-    implementation("androidx.compose.runtime:runtime-livedata:1.9.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-
-
 }

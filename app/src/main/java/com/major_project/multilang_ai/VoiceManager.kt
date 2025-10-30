@@ -1,3 +1,5 @@
+package com.major_project.multilang_ai
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -5,47 +7,74 @@ import android.speech.RecognizerIntent
 import android.speech.RecognitionListener
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
 
 class VoiceManager(private val context: Context) {
+
     private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
-    private var currentLocale = Locale.getDefault()
+    private var isSpeaking = false
 
-    init {
+    fun init(languageCode: String = "te-IN", onReady: (() -> Unit)? = null) {
+        val locale = Locale.forLanguageTag(languageCode)
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = currentLocale
+                tts?.language = locale
+                onReady?.invoke()
             }
         }
+
+        // 👇 Track TTS speaking state
+        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                isSpeaking = true
+                stopListening() // ✅ Fully stop STT when speaking starts
+            }
+
+            override fun onDone(utteranceId: String?) {
+                isSpeaking = false
+            }
+
+            override fun onError(utteranceId: String?) {
+                isSpeaking = false
+            }
+        })
+    }
+
+    /** ✅ Prevent STT from starting while speaking */
+    fun listen(onResult: (String, String) -> Unit, onError: (String) -> Unit) {
+        if (isSpeaking) return
+
+        stopListening()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-    }
 
-    fun setLanguage(langCode: String) {
-        currentLocale = when (langCode.lowercase()) {
-            "hindi" -> Locale("hi", "IN")
-            "telugu" -> Locale("te", "IN")
-            "tamil" -> Locale("ta", "IN")
-            "kannada" -> Locale("kn", "IN")
-            "malayalam" -> Locale("ml", "IN")
-            "marathi" -> Locale("mr", "IN")
-            else -> Locale("en", "IN")
+        val locale = UserPreferences.getLanguage(context).let {
+            Locale.forLanguageTag(it.ifEmpty { "te-IN" })
         }
-        tts?.language = currentLocale
-    }
 
-    fun listen(onResult: (String) -> Unit, onError: (String) -> Unit) {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale.toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
         }
 
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onResults(results: Bundle?) {
-                val text = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
-                onResult(text)
+                val text = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                if (!text.isNullOrEmpty()) {
+                    LanguageDetector.detectLanguage(text) { lang ->
+                        onResult(text, lang.code)
+                    }
+                } else onError("No speech detected")
+                stopListening()
             }
-            override fun onError(error: Int) = onError("Speech error: $error")
+
+            override fun onError(error: Int) {
+                onError("Speech error $error")
+                stopListening()
+            }
+
             override fun onReadyForSpeech(params: Bundle?) {}
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(rmsdB: Float) {}
@@ -58,13 +87,38 @@ class VoiceManager(private val context: Context) {
         speechRecognizer?.startListening(intent)
     }
 
-    fun speak(text: String) {
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    fun stopListening() {
+        speechRecognizer?.stopListening()
+        speechRecognizer?.cancel()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+    }
+
+    fun speakInstant(text: String, lang: String) {
+        if (text.isBlank()) return
+        val cleanText = text
+            .replace(Regex("\\*\\*|\\*|_|`|~"), "")
+            .replace(Regex("\\[(.*?)\\]\\((.*?)\\)"), "")
+            .trim()
+
+        val locale = Locale.forLanguageTag(lang.ifEmpty { "te-IN" })
+        tts?.language = locale
+        tts?.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "utterance-${System.currentTimeMillis()}")
+    }
+
+    fun pauseTTS() {
+        tts?.stop()
+        isSpeaking = false
     }
 
     fun release() {
         tts?.stop()
         tts?.shutdown()
-        speechRecognizer?.destroy()
+        stopListening()
+    }
+    fun resumeTTS(text: String, lang: String) {
+        val locale = Locale.forLanguageTag(lang.ifEmpty { "te-IN" })
+        tts?.language = locale
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 }
