@@ -77,8 +77,7 @@ dependencies {
     
 
     // MLKit
-    implementation("com.google.mlkit:language-id:17.0.6")
-
+    implementation(libs.language.id)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

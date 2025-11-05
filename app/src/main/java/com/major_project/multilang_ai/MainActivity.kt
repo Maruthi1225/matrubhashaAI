@@ -4,17 +4,14 @@ package com.major_project.multilang_ai
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.*
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
+import com.major_project.multilang_ai.google.GeminiService
+import com.major_project.multilang_ai.google.Secrets
 
 
-
-import com.major_project.multilang_ai.ui.VoiceOnlyChatScreen
-
-import kotlinx.coroutines.launch
+import com.major_project.multilang_ai.uiNav.MainApp
+import com.major_project.multilang_ai.uiNav.UserPreferences
+import com.major_project.multilang_ai.voice.LanguageDetector
+import com.major_project.multilang_ai.voice.VoiceManager
 
 
 class MainActivity : ComponentActivity() {

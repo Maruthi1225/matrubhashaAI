@@ -1,46 +1,247 @@
-package com.major_project.multilang_ai.ui
+package com.major_project.multilang_ai.uiNav
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.major_project.multilang_ai.R
+import com.major_project.multilang_ai.voice.AppLanguage
+import com.major_project.multilang_ai.uiNav.UserPreferences
+import com.major_project.multilang_ai.voice.VoiceManager
+import com.major_project.multilang_ai.ui.theme.AppThemeColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavHostController) {
+fun SettingsScreen(
+    navController: NavHostController,
+    voice: VoiceManager,
+    onThemeChange: (Boolean) -> Unit
+) {
+    var showLangSheet by remember { mutableStateOf(false) }
+    var darkTheme by remember { mutableStateOf(UserPreferences.isDarkTheme(navController.context)) }
+    val gradient = AppThemeColors.backgroundGradient()
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
+            CenterAlignedTopAppBar(
+                title = { Text("Settings", color = AppThemeColors.textColorPrimary()) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.back),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(24.dp)
-                        )
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("← Back", color = AppThemeColors.textColorPrimary())
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        }
+        },
+        containerColor = Color.Transparent
     ) { padding ->
+
+        // Main content
         Column(
             modifier = Modifier
+                .fillMaxSize()
+                .background(gradient)
                 .padding(padding)
-                .padding(24.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Top
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text("Settings", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(16.dp))
-            Text("• Change Language")
-            Text("• Voice options")
-            Text("• Theme (coming soon)")
+            Text(
+                "Personalization",
+                color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp
+            )
+
+            AuroraSettingCard(
+                title = "Preferred Language",
+                value = AppLanguage.values()
+                    .firstOrNull { it.code == UserPreferences.getLanguage(navController.context) }?.displayName
+                    ?: "Telugu",
+                onClick = { showLangSheet = true }
+            )
+
+            AuroraToggle(
+                title = "Dark Mode",
+                checked = darkTheme,
+                onToggle = {
+                    darkTheme = it
+                    UserPreferences.setDarkTheme(navController.context, it)
+                    onThemeChange(it)
+                }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                "Matrubhasha AI v1.0",
+                color = AppThemeColors.textColorPrimary().copy(alpha = 0.4f),
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
+        // Modal Bottom Sheet for language selection (appears from bottom)
+        if (showLangSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showLangSheet = false },
+                tonalElevation = 8.dp,
+                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+                containerColor = AppThemeColors.cardColor(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 18.dp)
+                        .heightIn(min = 220.dp, max = 420.dp)
+                ) {
+                    Text(
+                        text = "Choose Language",
+                        color = AppThemeColors.textColorPrimary(),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Language list
+                    AppLanguage.values().forEach { lang ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    UserPreferences.setLanguage(navController.context, lang.code)
+                                    voice.init(lang.code)
+                                    showLangSheet = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = lang.displayName,
+                                color = AppThemeColors.textColorPrimary(),
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showLangSheet = false }) {
+                            Text("Close", color = Color(0xFF00E676), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AuroraSettingCard(title: String, value: String?, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 5.dp,
+        color = AppThemeColors.cardColor()
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    Brush.linearGradient(
+                        listOf(Color(0xFF00D4FF), Color(0xFF3A7BD5)).map { it.copy(alpha = 0.12f) }
+                    )
+                )
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(title, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
+            if (value != null)
+                Text(value, color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f), fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+fun AuroraToggle(title: String, checked: Boolean, onToggle: (Boolean) -> Unit) {
+    val glowColor by animateColorAsState(
+        if (checked) Color(0xFF00E676) else Color(0xFF607D8B),
+        animationSpec = tween(600)
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 5.dp,
+        color = AppThemeColors.cardColor()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 18.dp, vertical = 14.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(title, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
+            Switch(
+                checked = checked,
+                onCheckedChange = onToggle,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = glowColor,
+                    checkedTrackColor = glowColor.copy(alpha = 0.4f),
+                    uncheckedThumbColor = Color.LightGray,
+                    uncheckedTrackColor = Color.DarkGray
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun LanguageSelectionSheet(onClose: () -> Unit, onLanguageSelected: (AppLanguage) -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        color = AppThemeColors.cardColor()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text("Choose Language", color = AppThemeColors.textColorPrimary(), fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            AppLanguage.values().forEach { lang ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onLanguageSelected(lang)
+                            onClose()
+                        }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(lang.displayName, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) {
+                Text("Close", color = Color(0xFF00E676), fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

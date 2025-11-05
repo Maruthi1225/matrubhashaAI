@@ -1,58 +1,100 @@
+// File: com/major_project/multilang_ai/ui/theme/AppTheme.kt
 package com.major_project.multilang_ai.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+// CompositionLocal that tells the app whether dark mode is enabled (app-level)
+val LocalAppDarkTheme = staticCompositionLocalOf { false }
 
 @Composable
-fun Multilang_AITheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+fun AppTheme(
+    darkTheme: Boolean? = null, // null = follow system, true/false = override
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val useDark = darkTheme ?: isSystemInDarkTheme()
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val darkColorScheme = darkColorScheme(
+        primary = Color(0xFF00D4FF),
+        onPrimary = Color.Black,
+        background = Color(0xFF0A0F1F),
+        onBackground = Color.White,
+        surface = Color(0xFF121826),
+        onSurface = Color.White,
+        secondary = Color(0xFF9D50BB)
+    )
+
+    val lightColorScheme = lightColorScheme(
+        primary = Color(0xFF2196F3),
+        onPrimary = Color.White,
+        background = Color(0xFFF3F7FF),
+        onBackground = Color.Black,
+        surface = Color(0xFFFFFFFF),
+        onSurface = Color.Black,
+        secondary = Color(0xFF8E24AA)
+    )
+
+    val colors = if (useDark) darkColorScheme else lightColorScheme
+
+    CompositionLocalProvider(LocalAppDarkTheme provides useDark) {
+        MaterialTheme(
+            colorScheme = colors,
+            typography = Typography(), // keep your typography if you have one
+            content = content
+        )
+    }
+}
+
+
+object AppThemeColors {
+
+    @Composable
+    fun isDark(): Boolean = LocalAppDarkTheme.current
+
+    @Composable
+    fun backgroundGradient(): Brush {
+        return if (isDark()) {
+            Brush.verticalGradient(
+                colors = listOf(
+                    Color(0xFF0A0F1F),
+                    Color(0xFF1B2B50),
+                    Color(0xFF3C3B6E)
+                )
+            )
+        } else {
+            Brush.verticalGradient(
+                colors = listOf(
+                    Color(0xFFF3F7FF),
+                    Color(0xFFDCEBFF),
+                    Color(0xFFBBD7FF)
+                )
+            )
+        }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    @Composable
+    fun cardColor(): Color {
+        return if (isDark()) Color.White.copy(alpha = 0.06f) else Color(0xFFF6F8FA)
+    }
+
+    @Composable
+    fun textColorPrimary(): Color {
+        return if (isDark()) Color.White else Color.Black
+    }
+
+    @Composable
+    fun accentGradient(isUser: Boolean): List<Color> {
+        return if (isDark()) {
+            if (isUser) listOf(Color(0xFF00D4FF), Color(0xFF0A82FF))
+            else listOf(Color(0xFF9D50BB), Color(0xFF6E48AA))
+        } else {
+            if (isUser) listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
+            else listOf(Color(0xFF8E24AA), Color(0xFFBA68C8))
+        }
+    }
 }
