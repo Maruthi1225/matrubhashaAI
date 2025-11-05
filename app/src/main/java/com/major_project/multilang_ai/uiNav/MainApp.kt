@@ -5,7 +5,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.major_project.multilang_ai.ui.HomeScreen
-import com.major_project.multilang_ai.ui.SettingsScreen
+import com.major_project.multilang_ai.uiNav.SettingsScreen
 
 @Composable
 fun MainApp(gemini: GeminiService, voice: VoiceManager) {
