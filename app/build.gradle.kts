@@ -17,21 +17,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            "String",
-            "GEMINI_API_KEY",
-            "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\""
-        )
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+        buildConfigField("String", "SARVAM_API_KEY", "\"sk_dudmpyme_AZ4EPFdXKLxRAYr1ukLFwdex\"")
     }
 
     buildFeatures {
@@ -58,31 +44,16 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.language.id.common)
-
-    // ✅ Correct navigation dependency
-    implementation("androidx.navigation:navigation-compose:2.9.5")
-
-    // Compose
-    implementation("androidx.compose.ui:ui:1.9.4")
-    implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.9.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
-
-    // Google AI client
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
     
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    
+    // Retrofit for Sarvam AI API
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
-    // MLKit
     implementation(libs.language.id)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 }

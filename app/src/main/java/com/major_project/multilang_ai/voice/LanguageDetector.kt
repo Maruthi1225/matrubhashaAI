@@ -32,17 +32,9 @@ object LanguageDetector {
 
     private fun mapCodeToLanguage(code: String): AppLanguage {
         val normalized = code.lowercase()
-        return AppLanguage.values().firstOrNull { it.code.lowercase().startsWith(normalized) }
-            ?: when (normalized) {
-                "hi" -> AppLanguage.HINDI
-                "te" -> AppLanguage.TELUGU
-                "ta" -> AppLanguage.TAMIL
-                "kn" -> AppLanguage.KANNADA
-                "ml" -> AppLanguage.MALAYALAM
-                "bn" -> AppLanguage.BENGALI
-                "mr" -> AppLanguage.MARATHI
-                "gu" -> AppLanguage.GUJARATI
-                else -> preferredLanguage
-            }
+        // Try to match the short code (e.g., "hi") or the full code (e.g., "hi-IN")
+        return AppLanguage.values().firstOrNull { 
+            it.code.lowercase().startsWith(normalized) || normalized.startsWith(it.code.lowercase().take(2))
+        } ?: preferredLanguage
     }
 }
