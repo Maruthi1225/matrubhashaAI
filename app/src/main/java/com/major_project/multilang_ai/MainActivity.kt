@@ -3,9 +3,11 @@ package com.major_project.multilang_ai
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.security.ProviderInstaller
 import com.major_project.multilang_ai.sarvam.LocalAIService
 import com.major_project.multilang_ai.uiNav.MainApp
 import com.major_project.multilang_ai.uiNav.UserPreferences
@@ -19,11 +21,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize Google Play Services Security Provider
+        ProviderInstaller.installIfNeededAsync(this, object : ProviderInstaller.ProviderInstallListener {
+            override fun onProviderInstalled() {
+                Log.d("MainActivity", "Security provider installed successfully")
+            }
+
+            override fun onProviderInstallFailed(errorCode: Int, recoveryIntent: android.content.Intent?) {
+                Log.e("MainActivity", "Security provider installation failed: $errorCode")
+            }
+        })
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
         }
 
-        // Pass the Sarvam API Key directly to bypass BuildConfig issues
         val sarvamApiKey = "sk_dudmpyme_AZ4EPFdXKLxRAYr1ukLFwdex"
         localAI = LocalAIService(this, sarvamApiKey)
 

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "537559057463",
+    "project_id": "mathrubasha-ai",
+    "storage_bucket": "mathrubasha-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537559057463:android:201e9de71123f4805a6bb2",
+        "android_client_info": {
+          "package_name": "com.major_project.multilang_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537559057463-prb9qfvu0kneqgmst8ldfpm3mn652pkb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.major_project.multilang_ai",
+            "certificate_hash": "105c1dd376ffb6894171a3f0ce5c4be78222ba46"
+          }
+        },
+        {
+          "client_id": "537559057463-0vkdm8s23aj3rljk6bamapq40sb0j2l1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7l1GS2BbrCeTlHb2X3jdxTGCjp1kiTmk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537559057463-0vkdm8s23aj3rljk6bamapq40sb0j2l1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

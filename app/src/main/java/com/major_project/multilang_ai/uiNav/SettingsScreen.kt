@@ -5,17 +5,22 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
 import com.major_project.multilang_ai.voice.AppLanguage
 import com.major_project.multilang_ai.uiNav.UserPreferences
 import com.major_project.multilang_ai.voice.VoiceManager
@@ -31,6 +36,8 @@ fun SettingsScreen(
     var showLangSheet by remember { mutableStateOf(false) }
     var darkTheme by remember { mutableStateOf(UserPreferences.isDarkTheme(navController.context)) }
     val gradient = AppThemeColors.backgroundGradient()
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
 
     Scaffold(
         topBar = {
@@ -56,6 +63,53 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // User Profile Section
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = AppThemeColors.cardColor(),
+                tonalElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profile",
+                            modifier = Modifier.size(36.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column {
+                        val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "User"
+                        Text(
+                            text = displayName,
+                            color = AppThemeColors.textColorPrimary(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = currentUser?.email ?: "Not logged in",
+                            color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
             Text(
                 "Personalization",
                 color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f),
@@ -82,6 +136,22 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.weight(1f))
+
+            // Logout Button
+            Button(
+                onClick = {
+                    auth.signOut()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.error),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Logout", fontWeight = FontWeight.Bold)
+            }
+
             Text(
                 "Matrubhasha AI v1.0",
                 color = AppThemeColors.textColorPrimary().copy(alpha = 0.4f),
@@ -90,7 +160,7 @@ fun SettingsScreen(
             )
         }
 
-        // Modal Bottom Sheet for language selection (appears from bottom)
+        // Modal Bottom Sheet for language selection
         if (showLangSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showLangSheet = false },
@@ -114,7 +184,6 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Language list
                     AppLanguage.values().forEach { lang ->
                         Row(
                             modifier = Modifier
@@ -208,40 +277,6 @@ fun AuroraToggle(title: String, checked: Boolean, onToggle: (Boolean) -> Unit) {
                     uncheckedTrackColor = Color.DarkGray
                 )
             )
-        }
-    }
-}
-
-@Composable
-fun LanguageSelectionSheet(onClose: () -> Unit, onLanguageSelected: (AppLanguage) -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-        color = AppThemeColors.cardColor()
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text("Choose Language", color = AppThemeColors.textColorPrimary(), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            AppLanguage.values().forEach { lang ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onLanguageSelected(lang)
-                            onClose()
-                        }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(lang.displayName, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) {
-                Text("Close", color = Color(0xFF00E676), fontWeight = FontWeight.SemiBold)
-            }
         }
     }
 }

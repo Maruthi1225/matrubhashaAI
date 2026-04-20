@@ -1,11 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.major_project.multilang_ai"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Added for better Google Play Services broker communication -->
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
     <queries>
+        <!-- Package visibility for Google Play Services and Play Store -->
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.android.vending" />
+
+        <!-- Specific intents for Google Sign-In and Auth Services -->
+        <intent>
+            <action android:name="com.google.android.gms.auth.service.START" />
+        </intent>
+        <intent>
+            <action android:name="com.google.android.gms.auth.api.signin.SERVICE" />
+        </intent>
+        <intent>
+            <action android:name="com.google.android.gms.auth.api.signin.SERVICE_CONFIG_UPDATER" />
+        </intent>
+
+        <!-- For Speech Recognition -->
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
@@ -20,7 +40,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Multilang_AI"
-        tools:targetApi="31">
+        tools:targetApi="35">
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

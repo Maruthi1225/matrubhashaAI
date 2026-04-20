@@ -23,8 +23,8 @@ data class SarvamChatRequest(
 )
 
 data class SarvamMessage(
-    val role: String,
-    val content: String
+    val role: String = "",
+    val content: String = ""
 )
 
 data class SarvamChatResponse(
@@ -47,7 +47,7 @@ class LocalAIService(private val context: Context, private val sarvamApiKey: Str
 
     private val authHeader = "Bearer $sarvamApiKey"
     var isReady = mutableStateOf(true)
-    private val modelName = "sarvam-105b" // Standard model identifier
+    private val modelName = "sarvam-105b"
 
     private val chatHistory = mutableListOf<SarvamMessage>()
 
