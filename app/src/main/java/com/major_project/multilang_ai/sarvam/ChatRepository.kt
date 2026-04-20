@@ -20,46 +20,34 @@ class ChatRepository {
     private val db = FirebaseFirestore.getInstance()
 
     private fun getSafeUserId(): String? {
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
-            Log.w("ChatRepository", "No user logged in! Chats will not be saved/fetched correctly.")
-            // For development purposes, you might return a "guest" ID if not using Auth yet
-            // return "guest_user" 
-        }
-        return uid
+        return auth.currentUser?.uid
     }
 
-    /**
-     * Saves a chat session to Firestore under the user's ID
-     */
-    suspend fun saveChat(session: ChatSession) {
-        val userId = getSafeUserId() ?: return
+    suspend fun saveChat(session: ChatSession): String? {
+        val userId = getSafeUserId() ?: return null
         val chatData = session.copy(userId = userId, lastTimestamp = System.currentTimeMillis())
         
-        try {
+        return try {
             if (session.id.isEmpty()) {
-                db.collection("users").document(userId)
+                val docRef = db.collection("users").document(userId)
                     .collection("chats").add(chatData).await()
+                docRef.id
             } else {
                 db.collection("users").document(userId)
                     .collection("chats").document(session.id).set(chatData).await()
+                session.id
             }
         } catch (e: Exception) {
             Log.e("ChatRepository", "Error saving chat: ${e.message}", e)
+            null
         }
     }
 
-    /**
-     * Retrieves all chat history for the current user
-     */
     suspend fun getChatHistory(): List<ChatSession> {
         val userId = getSafeUserId() ?: return emptyList()
         return try {
-            // NOTE: This query requires a Composite Index in Firestore.
-            // Check Logcat for a link to create it if it fails.
             val snapshot = db.collection("users").document(userId)
                 .collection("chats")
-                .orderBy("isPinned", Query.Direction.DESCENDING)
                 .orderBy("lastTimestamp", Query.Direction.DESCENDING)
                 .get().await()
             
@@ -68,22 +56,29 @@ class ChatRepository {
             }
         } catch (e: Exception) {
             Log.e("ChatRepository", "Error fetching history: ${e.message}", e)
-            // If the error is "FAILED_PRECONDITION", it's a missing index.
             emptyList()
         }
     }
 
-    /**
-     * Pins or unpins a chat
-     */
-    suspend fun togglePin(chatId: String, isPinned: Boolean) {
+    suspend fun getChat(chatId: String): ChatSession? {
+        val userId = getSafeUserId() ?: return null
+        return try {
+            val doc = db.collection("users").document(userId)
+                .collection("chats").document(chatId).get().await()
+            doc.toObject(ChatSession::class.java)?.copy(id = doc.id)
+        } catch (e: Exception) {
+            Log.e("ChatRepository", "Error fetching chat: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun deleteChat(chatId: String) {
         val userId = getSafeUserId() ?: return
         try {
             db.collection("users").document(userId)
-                .collection("chats").document(chatId)
-                .update("isPinned", isPinned).await()
+                .collection("chats").document(chatId).delete().await()
         } catch (e: Exception) {
-            Log.e("ChatRepository", "Error toggling pin: ${e.message}")
+            Log.e("ChatRepository", "Error deleting chat: ${e.message}")
         }
     }
 }

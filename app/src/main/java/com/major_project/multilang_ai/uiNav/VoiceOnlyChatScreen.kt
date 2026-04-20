@@ -32,12 +32,12 @@ data class ChatMessage(val text: String, val isUser: Boolean)
 @Composable
 fun VoiceOnlyChatScreen(
     modifier: Modifier = Modifier,
+    chatMessages: List<ChatMessage>,
     onVoiceInput: (onRecognized: (String) -> Unit) -> Unit,
     onSendMessage: (String, onResponse: (String) -> Unit) -> Unit,
     voice: VoiceManager,
     selectedLanguage: String
 ) {
-    val messages = remember { mutableStateListOf<ChatMessage>() }
     val coroutineScope = rememberCoroutineScope()
     var isListening by remember { mutableStateOf(false) }
 
@@ -55,10 +55,9 @@ fun VoiceOnlyChatScreen(
                     isListening = true
                     onVoiceInput { recognizedText ->
                         isListening = false
-                        messages.add(ChatMessage(recognizedText, true))
+                        // Messages are now managed by HomeScreen/caller
                         coroutineScope.launch {
                             onSendMessage(recognizedText) { reply ->
-                                messages.add(ChatMessage(reply, false))
                                 voice.speakInstant(reply, selectedLanguage)
                             }
                         }
@@ -74,7 +73,7 @@ fun VoiceOnlyChatScreen(
                 .padding(padding)
                 .clickable { voice.pauseTTS() }
         ) {
-            if (messages.isEmpty()) {
+            if (chatMessages.isEmpty()) {
                 EmptyChatPlaceholder()
             } else {
                 LazyColumn(
@@ -84,7 +83,7 @@ fun VoiceOnlyChatScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     reverseLayout = true
                 ) {
-                    items(messages.reversed()) { msg ->
+                    items(chatMessages.reversed()) { msg ->
                         ChatBubble(
                             message = msg,
                             onBubbleClick = {

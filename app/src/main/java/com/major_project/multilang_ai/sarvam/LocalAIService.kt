@@ -109,4 +109,11 @@ class LocalAIService(private val context: Context, private val sarvamApiKey: Str
     fun clearChat() {
         chatHistory.clear()
     }
+
+    fun setChatHistory(messages: List<SarvamMessage>) {
+        chatHistory.clear()
+        chatHistory.addAll(messages)
+    }
+
+    fun getChatHistory(): List<SarvamMessage> = chatHistory.toList()
 }

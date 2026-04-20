@@ -2,7 +2,6 @@ package com.major_project.multilang_ai.uiNav
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,16 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.major_project.multilang_ai.R
 import com.major_project.multilang_ai.sarvam.ChatRepository
 import com.major_project.multilang_ai.sarvam.ChatSession
 import com.major_project.multilang_ai.sarvam.LocalAIService
+import com.major_project.multilang_ai.sarvam.SarvamMessage
 import com.major_project.multilang_ai.ui.theme.AppThemeColors
-import com.major_project.multilang_ai.uiNav.LanguageDropdown
-import com.major_project.multilang_ai.uiNav.UserPreferences
-import com.major_project.multilang_ai.uiNav.VoiceOnlyChatScreen
 import com.major_project.multilang_ai.voice.VoiceManager
 import kotlinx.coroutines.launch
 
@@ -41,28 +39,58 @@ fun HomeScreen(
     val chatRepo = remember { ChatRepository() }
 
     var chatHistory by remember { mutableStateOf(emptyList<ChatSession>()) }
+    var currentSession by remember { mutableStateOf<ChatSession?>(null) }
+    val messages = remember { mutableStateListOf<ChatMessage>() }
+    
     var selectedLanguage by remember { mutableStateOf(UserPreferences.getLanguage(navController.context)) }
     val backgroundGradient = AppThemeColors.backgroundGradient()
 
     // Fetch history whenever the drawer is opened
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
-            val history = chatRepo.getChatHistory()
-            chatHistory = history
+            chatHistory = chatRepo.getChatHistory()
         }
+    }
+
+    fun startNewChat() {
+        currentSession = null
+        messages.clear()
+        localAI.clearChat()
+    }
+
+    fun loadChat(session: ChatSession) {
+        currentSession = session
+        messages.clear()
+        messages.addAll(session.messages.map { ChatMessage(it.content, it.role == "user") })
+        localAI.setChatHistory(session.messages)
     }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                drawerContainerColor = AppThemeColors.cardColor(),
+                drawerTonalElevation = 8.dp
+            ) {
                 Spacer(Modifier.height(12.dp))
-                Text("Chat History", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-                HorizontalDivider()
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Chat History", style = MaterialTheme.typography.titleLarge, color = AppThemeColors.textColorPrimary())
+                    IconButton(onClick = { 
+                        startNewChat()
+                        scope.launch { drawerState.close() }
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "New Chat", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                HorizontalDivider(color = AppThemeColors.textColorPrimary().copy(alpha = 0.1f))
 
                 if (chatHistory.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No history found", style = MaterialTheme.typography.bodyMedium)
+                        Text("No history found", color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f))
                     }
                 }
 
@@ -74,22 +102,28 @@ fun HomeScreen(
                                     Text(
                                         text = session.title.ifEmpty { "Untitled Chat" },
                                         maxLines = 1,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
+                                        color = AppThemeColors.textColorPrimary()
                                     )
                                     if (session.isPinned) {
                                         Icon(
                                             Icons.Default.Star,
                                             contentDescription = "Pinned",
-                                            tint = Color.Cyan,
+                                            tint = Color(0xFF00E676),
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
                             },
-                            selected = false,
+                            selected = session.id == currentSession?.id,
                             onClick = {
+                                loadChat(session)
                                 scope.launch { drawerState.close() }
                             },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            ),
                             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                         )
                     }
@@ -102,16 +136,15 @@ fun HomeScreen(
                 CenterAlignedTopAppBar(
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = AppThemeColors.textColorPrimary())
                         }
                     },
-                    title = { Text("Matrubhasha AI", style = MaterialTheme.typography.titleLarge) },
+                    title = { Text("Matrubhasha AI", color = AppThemeColors.textColorPrimary(), fontWeight = FontWeight.Bold) },
                     actions = {
                         IconButton(onClick = {
-                            localAI.clearChat()
-                            scope.launch { drawerState.close() }
+                            startNewChat()
                         }) {
-                            Icon(Icons.Default.Add, contentDescription = "New Chat")
+                            Icon(Icons.Default.Add, contentDescription = "New Chat", tint = AppThemeColors.textColorPrimary())
                         }
 
                         LanguageDropdown(
@@ -123,9 +156,14 @@ fun HomeScreen(
                         )
 
                         IconButton(onClick = { navController.navigate("settings") }) {
-                            Image(painter = painterResource(id = R.drawable.settings), contentDescription = "Settings", modifier = Modifier.size(24.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.settings), 
+                                contentDescription = "Settings",
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
                 )
             },
             containerColor = Color.Transparent,
@@ -133,29 +171,43 @@ fun HomeScreen(
         ) { paddingValues ->
             VoiceOnlyChatScreen(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
+                chatMessages = messages,
                 onVoiceInput = { onRecognized ->
-                    scope.launch {
-                        voice.listen(
-                            onResult = { text, langCode ->
-                                scope.launch {
-                                    voice.pauseTTS()
-                                    val reply = localAI.getResponse(text, langCode)
-                                    onRecognized(text)
-                                    voice.speakInstant(reply, langCode)
-                                    chatRepo.saveChat(ChatSession(title = text, messages = listOf()))
-                                }
-                            },
-                            onError = { println("Voice Error: $it") }
-                        )
-                    }
+                    voice.listen(
+                        onResult = { text, _ ->
+                            scope.launch {
+                                voice.stopListening()
+                                onRecognized(text)
+                            }
+                        },
+                        onError = { println("Voice Error: $it") }
+                    )
                 },
                 onSendMessage = { userText, onResponse ->
                     scope.launch {
                         voice.pauseTTS()
+                        
+                        // Add user message to the list
+                        messages.add(ChatMessage(userText, true))
+                        
                         val reply = localAI.getResponse(userText, selectedLanguage)
+                        
+                        // Add AI reply to the list
+                        messages.add(ChatMessage(reply, false))
+
                         onResponse(reply)
                         voice.speakInstant(reply, selectedLanguage)
-                        chatRepo.saveChat(ChatSession(title = userText, messages = listOf()))
+
+                        val updatedMessages = localAI.getChatHistory()
+                        val sessionToSave = currentSession?.copy(
+                            title = if (currentSession == null) userText else currentSession!!.title,
+                            messages = updatedMessages
+                        ) ?: ChatSession(title = userText, messages = updatedMessages)
+
+                        val savedId = chatRepo.saveChat(sessionToSave)
+                        if (currentSession == null && savedId != null) {
+                            currentSession = sessionToSave.copy(id = savedId)
+                        }
                     }
                 },
                 voice = voice,
