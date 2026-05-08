@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,6 +43,13 @@ fun HomeScreen(
     var selectedLanguage by remember { mutableStateOf(UserPreferences.getLanguage(navController.context)) }
     val backgroundGradient = AppThemeColors.backgroundGradient()
 
+    // State for renaming
+    var sessionToRename by remember { mutableStateOf<ChatSession?>(null) }
+    var renameText by remember { mutableStateOf("") }
+
+    // State for deleting
+    var sessionToDelete by remember { mutableStateOf<ChatSession?>(null) }
+
     // Fetch history whenever the drawer is opened
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
@@ -63,6 +68,81 @@ fun HomeScreen(
         messages.clear()
         messages.addAll(session.messages.map { ChatMessage(it.content, it.role == "user") })
         localAI.setChatHistory(session.messages)
+    }
+
+    // Rename Dialog
+    if (sessionToRename != null) {
+        AlertDialog(
+            onDismissRequest = { sessionToRename = null },
+            title = { Text("Rename Chat", color = AppThemeColors.textColorPrimary()) },
+            text = {
+                OutlinedTextField(
+                    value = renameText,
+                    onValueChange = { renameText = it },
+                    label = { Text("New Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val target = sessionToRename
+                    if (target != null && renameText.isNotBlank()) {
+                        scope.launch {
+                            chatRepo.updateChatTitle(target.id, renameText)
+                            chatHistory = chatRepo.getChatHistory()
+                            if (currentSession?.id == target.id) {
+                                currentSession = currentSession?.copy(title = renameText)
+                            }
+                            sessionToRename = null
+                        }
+                    }
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { sessionToRename = null }) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = AppThemeColors.cardColor()
+        )
+    }
+
+    // Delete Dialog
+    if (sessionToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { sessionToDelete = null },
+            title = { Text("Delete Chat", color = AppThemeColors.textColorPrimary()) },
+            text = { Text("Are you sure you want to delete this chat?", color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val target = sessionToDelete
+                        if (target != null) {
+                            scope.launch {
+                                chatRepo.deleteChat(target.id)
+                                chatHistory = chatRepo.getChatHistory()
+                                if (currentSession?.id == target.id) {
+                                    startNewChat()
+                                }
+                                sessionToDelete = null
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { sessionToDelete = null }) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = AppThemeColors.cardColor()
+        )
     }
 
     ModalNavigationDrawer(
@@ -96,22 +176,80 @@ fun HomeScreen(
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(chatHistory) { session ->
+                        var showMenu by remember { mutableStateOf(false) }
+
                         NavigationDrawerItem(
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (session.isPinned) {
+                                        Icon(
+                                            Icons.Default.PushPin,
+                                            contentDescription = "Pinned",
+                                            tint = Color(0xFF00E676),
+                                            modifier = Modifier.size(16.dp).padding(end = 8.dp)
+                                        )
+                                    }
                                     Text(
                                         text = session.title.ifEmpty { "Untitled Chat" },
                                         maxLines = 1,
                                         modifier = Modifier.weight(1f),
                                         color = AppThemeColors.textColorPrimary()
                                     )
-                                    if (session.isPinned) {
-                                        Icon(
-                                            Icons.Default.Star,
-                                            contentDescription = "Pinned",
-                                            tint = Color(0xFF00E676),
-                                            modifier = Modifier.size(16.dp)
-                                        )
+                                    Box {
+                                        IconButton(
+                                            onClick = { showMenu = true },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.MoreVert,
+                                                contentDescription = "Options",
+                                                tint = AppThemeColors.textColorPrimary().copy(alpha = 0.6f)
+                                            )
+                                        }
+                                        DropdownMenu(
+                                            expanded = showMenu,
+                                            onDismissRequest = { showMenu = false },
+                                            modifier = Modifier.background(AppThemeColors.cardColor())
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(if (session.isPinned) "Unpin" else "Pin") },
+                                                onClick = {
+                                                    showMenu = false
+                                                    scope.launch {
+                                                        chatRepo.togglePin(session.id, !session.isPinned)
+                                                        chatHistory = chatRepo.getChatHistory()
+                                                    }
+                                                },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        if (session.isPinned) Icons.Default.PushPin else Icons.Default.PushPin,
+                                                        contentDescription = null,
+                                                        tint = if (session.isPinned) Color(0xFF00E676) else AppThemeColors.textColorPrimary()
+                                                    )
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Rename") },
+                                                onClick = {
+                                                    showMenu = false
+                                                    renameText = session.title
+                                                    sessionToRename = session
+                                                },
+                                                leadingIcon = {
+                                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                                onClick = {
+                                                    showMenu = false
+                                                    sessionToDelete = session
+                                                },
+                                                leadingIcon = {
+                                                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             },

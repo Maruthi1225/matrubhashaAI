@@ -3,16 +3,19 @@ package com.major_project.multilang_ai.sarvam
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 data class ChatSession(
-    val id: String = "",
-    val userId: String = "",
-    val title: String = "New Chat",
-    val lastTimestamp: Long = System.currentTimeMillis(),
-    val isPinned: Boolean = false,
-    val messages: List<SarvamMessage> = emptyList()
+    var id: String = "",
+    var userId: String = "",
+    var title: String = "New Chat",
+    var lastTimestamp: Long = System.currentTimeMillis(),
+    @get:PropertyName("isPinned")
+    @set:PropertyName("isPinned")
+    var isPinned: Boolean = false,
+    var messages: List<SarvamMessage> = emptyList()
 )
 
 class ChatRepository {
@@ -43,6 +46,28 @@ class ChatRepository {
         }
     }
 
+    suspend fun updateChatTitle(chatId: String, newTitle: String) {
+        val userId = getSafeUserId() ?: return
+        try {
+            db.collection("users").document(userId)
+                .collection("chats").document(chatId)
+                .update("title", newTitle).await()
+        } catch (e: Exception) {
+            Log.e("ChatRepository", "Error updating title: ${e.message}")
+        }
+    }
+
+    suspend fun togglePin(chatId: String, pinned: Boolean) {
+        val userId = getSafeUserId() ?: return
+        try {
+            db.collection("users").document(userId)
+                .collection("chats").document(chatId)
+                .update("isPinned", pinned).await()
+        } catch (e: Exception) {
+            Log.e("ChatRepository", "Error toggling pin: ${e.message}")
+        }
+    }
+
     suspend fun getChatHistory(): List<ChatSession> {
         val userId = getSafeUserId() ?: return emptyList()
         return try {
@@ -52,8 +77,15 @@ class ChatRepository {
                 .get().await()
             
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(ChatSession::class.java)?.copy(id = doc.id)
-            }
+                try {
+                    val session = doc.toObject(ChatSession::class.java)
+                    val pinnedStatus = doc.getBoolean("isPinned") ?: doc.getBoolean("pinned") ?: false
+                    session?.copy(id = doc.id, isPinned = pinnedStatus)
+                } catch (e: Exception) {
+                    Log.e("ChatRepository", "Error mapping document ${doc.id}: ${e.message}")
+                    null
+                }
+            }.sortedByDescending { it.isPinned }
         } catch (e: Exception) {
             Log.e("ChatRepository", "Error fetching history: ${e.message}", e)
             emptyList()
@@ -65,7 +97,9 @@ class ChatRepository {
         return try {
             val doc = db.collection("users").document(userId)
                 .collection("chats").document(chatId).get().await()
-            doc.toObject(ChatSession::class.java)?.copy(id = doc.id)
+            val session = doc.toObject(ChatSession::class.java)
+            val pinnedStatus = doc.getBoolean("isPinned") ?: doc.getBoolean("pinned") ?: false
+            session?.copy(id = doc.id, isPinned = pinnedStatus)
         } catch (e: Exception) {
             Log.e("ChatRepository", "Error fetching chat: ${e.message}")
             null
