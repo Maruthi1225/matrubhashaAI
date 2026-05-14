@@ -92,4 +92,4 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 -   `ui/theme/`: Custom Material 3 theme, colors, and global styles.
 
 ---
-Developed as a Major Project as a partial requirement to obtain MCA degree.
+Developed as a Major Project as a partial requirement to obtain MCA degree from University Of Hyderabad.
