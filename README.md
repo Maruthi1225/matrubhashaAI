@@ -1,4 +1,4 @@
-# Matrubhasha AI 🇮🇳
+# Matrubhasha AI
 
 Matrubhasha AI is a premium, multilingual Indian AI assistant application built with modern Android technologies. It leverages the **Sarvam AI** platform to provide context-aware, culturally relevant responses in multiple Indian languages, offering a seamless chat and voice experience.
 
