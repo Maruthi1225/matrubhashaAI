@@ -18,22 +18,26 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 ## 📸 Screenshots Gallery
 
 ### ☀️ Light Mode
+
 | Login | Home Screen | Chat View | Voice Input |
 | :---: | :---: | :---: | :---: |
-| ![Login Light](https://via.placeholder.com/200x400?text=Login+Light) | ![Home Light](https://via.placeholder.com/200x400?text=Home+Light) | ![Chat Light](https://via.placeholder.com/200x400?text=Chat+Light) | ![Voice Light](https://via.placeholder.com/200x400?text=Voice+Light) |
+| ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/home_light.png) | ![Chat Light](screenshots/chat_light.png) | ![Voice Light](screenshots/voice_light.png) |
 
 | Settings | Language Select | Profile | About |
 | :---: | :---: | :---: | :---: |
-| ![Settings Light](https://via.placeholder.com/200x400?text=Settings+Light) | ![Lang Light](https://via.placeholder.com/200x400?text=Language+Light) | ![Profile Light](https://via.placeholder.com/200x400?text=Profile+Light) | ![About Light](https://via.placeholder.com/200x400?text=About+Light) |
+| ![Settings Light](screenshots/settings_light.png) | ![Language Light](screenshots/language_light.png) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
+
+---
 
 ### 🌙 Dark Mode
+
 | Login | Home Screen | Chat View | Voice Input |
 | :---: | :---: | :---: | :---: |
-| ![Login Dark](https://via.placeholder.com/200x400?text=Login+Dark) | ![Home Dark](https://via.placeholder.com/200x400?text=Home+Dark) | ![Chat Dark](https://via.placeholder.com/200x400?text=Chat+Dark) | ![Voice Dark](https://via.placeholder.com/200x400?text=Voice+Dark) |
+| ![Login Dark](screenshots/login_dark.png) | ![Home Dark](screenshots/home_dark.png) | ![Chat Dark](screenshots/chat_dark.png) | ![Voice Dark](screenshots/voice_dark.png) |
 
 | Settings | Language Select | Profile | About |
 | :---: | :---: | :---: | :---: |
-| ![Settings Dark](https://via.placeholder.com/200x400?text=Settings+Dark) | ![Lang Dark](https://via.placeholder.com/200x400?text=Language+Dark) | ![Profile Dark](https://via.placeholder.com/200x400?text=Profile+Dark) | ![About Dark](https://via.placeholder.com/200x400?text=About+Dark) |
+| ![Settings Dark](screenshots/settings_dark.png) | ![Language Dark](screenshots/language_dark.png) | ![Profile Dark](screenshots/profile_dark.png) | ![About Dark](screenshots/about_dark.png) |
 
 *Note: Replace these placeholders with actual screenshots from your device in a `screenshots/` directory.*
 
