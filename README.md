@@ -23,24 +23,22 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 | :---: | :---: | :---: | :---: |
 | ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/lightUI.jpeg) | ![Chat Light](screenshots/light_chatScreen.jpeg) | ![settings Light](screenshots/light_settings.jpeg) |
 
-| chat history | chat history setting | Language Select(setting)| About |
+| chat history | chat history setting | Language Select(setting)| Language Select(chat) |
 | :---: | :---: | :---: | :---: |
-| ![chatHistory Light](screenshots/light_chatHistory_1.jpeg) | ![Language Light](screenshots/light_chatHistory_2.jpeg) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
+| ![chatHistory Light](screenshots/light_chatHistory_1.jpeg) | ![chatHistory Light](screenshots/light_chatHistory_2.jpeg) | ![lang Light](screenshots/light_lang_1.jpeg) | ![lang Light](screenshots/light_lang_2.jpeg) |
 
-| chat history | Language Select(chat) | Language Select(setting)| About |
-| :---: | :---: | :---: | :---: |
-| ![chatHistory Light](screenshots/light_chatHistory.jpeg) | ![Language Light](screenshots/language_light.png) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
+
 ---
 
 ### 🌙 Dark Mode
 
-| Login | Home Screen | Chat View | Voice Input |
+| Login | Home Screen | Chat View | settings |
 | :---: | :---: | :---: | :---: |
-| ![Login Dark](screenshots/login_dark.png) | ![Home Dark](screenshots/home_dark.png) | ![Chat Dark](screenshots/chat_dark.png) | ![Voice Dark](screenshots/voice_dark.png) |
+| ![Login dark](screenshots/dark_login.jpeg) | ![Home dark](screenshots/darkUI.jpeg) | ![Chat dark](screenshots/dark_chatScreen.jpeg) | ![settings dark](screenshots/dark_settings.jpeg) |
 
-| Settings | Language Select | Profile | About |
+| chat history | chat history setting | Language Select(setting)| Language Select(chat) |
 | :---: | :---: | :---: | :---: |
-| ![Settings Dark](screenshots/settings_dark.png) | ![Language Dark](screenshots/language_dark.png) | ![Profile Dark](screenshots/profile_dark.png) | ![About Dark](screenshots/about_dark.png) |
+| ![chatHistory dark](screenshots/dark_chatHistory_1.jpeg) | ![chatHistory dark](screenshots/dark_chatHistory_2.jpeg) | ![lang dark](screenshots/dark_lang_1.jpeg) | ![lang dark](screenshots/dark_lang_2.jpeg) |
 
 *Note: Replace these placeholders with actual screenshots from your device in a `screenshots/` directory.*
 
