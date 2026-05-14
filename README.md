@@ -15,13 +15,27 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 -   **Personalized Settings**: Customize your experience by choosing preferred languages and themes.
 -   **Persistent Chat**: Context-aware conversations that remember previous turns.
 
-## 📸 Screenshots
+## 📸 Screenshots Gallery
 
-| Login Screen | Home (Chat) | Settings |
-| :---: | :---: | :---: |
-| ![Login Screen Placeholder](https://via.placeholder.com/200x400?text=Login+Screen) | ![Home Screen Placeholder](https://via.placeholder.com/200x400?text=Home+Screen) | ![Settings Screen Placeholder](https://via.placeholder.com/200x400?text=Settings+Screen) |
+### ☀️ Light Mode
+| Login | Home Screen | Chat View | Voice Input |
+| :---: | :---: | :---: | :---: |
+| ![Login Light](https://via.placeholder.com/200x400?text=Login+Light) | ![Home Light](https://via.placeholder.com/200x400?text=Home+Light) | ![Chat Light](https://via.placeholder.com/200x400?text=Chat+Light) | ![Voice Light](https://via.placeholder.com/200x400?text=Voice+Light) |
 
-*Note: Replace these placeholders with actual screenshots from your device.*
+| Settings | Language Select | Profile | About |
+| :---: | :---: | :---: | :---: |
+| ![Settings Light](https://via.placeholder.com/200x400?text=Settings+Light) | ![Lang Light](https://via.placeholder.com/200x400?text=Language+Light) | ![Profile Light](https://via.placeholder.com/200x400?text=Profile+Light) | ![About Light](https://via.placeholder.com/200x400?text=About+Light) |
+
+### 🌙 Dark Mode
+| Login | Home Screen | Chat View | Voice Input |
+| :---: | :---: | :---: | :---: |
+| ![Login Dark](https://via.placeholder.com/200x400?text=Login+Dark) | ![Home Dark](https://via.placeholder.com/200x400?text=Home+Dark) | ![Chat Dark](https://via.placeholder.com/200x400?text=Chat+Dark) | ![Voice Dark](https://via.placeholder.com/200x400?text=Voice+Dark) |
+
+| Settings | Language Select | Profile | About |
+| :---: | :---: | :---: | :---: |
+| ![Settings Dark](https://via.placeholder.com/200x400?text=Settings+Dark) | ![Lang Dark](https://via.placeholder.com/200x400?text=Language+Dark) | ![Profile Dark](https://via.placeholder.com/200x400?text=Profile+Dark) | ![About Dark](https://via.placeholder.com/200x400?text=About+Dark) |
+
+*Note: Replace these placeholders with actual screenshots from your device in a `screenshots/` directory.*
 
 ## 🛠️ Tech Stack
 
