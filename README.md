@@ -21,12 +21,15 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 
 | Login | Home Screen | Chat View | settings |
 | :---: | :---: | :---: | :---: |
-| ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/lightUI.png) | ![Chat Light](screenshots/light_chatScreen.png) | ![settings Light](screenshots/light_settings.png) |
+| ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/lightUI.jpeg) | ![Chat Light](screenshots/light_chatScreen.jpeg) | ![settings Light](screenshots/light_settings.jpeg) |
 
-| Settings | Language Select | Profile | About |
+| chat history | chat history setting | Language Select(setting)| About |
 | :---: | :---: | :---: | :---: |
-| ![Settings Light](screenshots/settings_light.png) | ![Language Light](screenshots/language_light.png) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
+| ![chatHistory Light](screenshots/light_chatHistory_1.jpeg) | ![Language Light](screenshots/light_chatHistory_2.jpeg) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
 
+| chat history | Language Select(chat) | Language Select(setting)| About |
+| :---: | :---: | :---: | :---: |
+| ![chatHistory Light](screenshots/light_chatHistory.jpeg) | ![Language Light](screenshots/language_light.png) | ![Profile Light](screenshots/profile_light.png) | ![About Light](screenshots/about_light.png) |
 ---
 
 ### 🌙 Dark Mode
