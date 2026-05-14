@@ -73,6 +73,12 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
       ```kotlin
       buildConfigField("String", "SARVAM_API_KEY", "\"your_api_key_here\"")
       ```
+    - open MainActivity.kt
+    - Also replace "YOUR SARVAM AI API KEY" value with your own key: 
+       ```kotlin
+        val sarvamApiKey = "YOUR SARVAM AI API KEY"
+      ```
+      
 4. **Sync Gradle**:
     - Let Android Studio download dependencies and sync the project.
 5. **Run**:
@@ -86,4 +92,4 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 -   `ui/theme/`: Custom Material 3 theme, colors, and global styles.
 
 ---
-Developed as a Major Project for empowering multilingual communication.
+Developed as a Major Project as a partial requirement to obtain MCA degree.
