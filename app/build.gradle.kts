@@ -18,7 +18,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "SARVAM_API_KEY", "\"sk_dudmpyme_AZ4EPFdXKLxRAYr1ukLFwdex\"")
+        buildConfigField("String", "SARVAM_API_KEY", "\"your_api_key_here\"")
     }
 
     buildFeatures {
