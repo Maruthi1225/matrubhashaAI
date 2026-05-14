@@ -19,9 +19,9 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 
 ### ☀️ Light Mode
 
-| Login | Home Screen | Chat View | Voice Input |
+| Login | Home Screen | Chat View | settings |
 | :---: | :---: | :---: | :---: |
-| ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/home_light.png) | ![Chat Light](screenshots/chat_light.png) | ![Voice Light](screenshots/voice_light.png) |
+| ![Login Light](screenshots/light_login.jpeg) | ![Home Light](screenshots/lightUI.png) | ![Chat Light](screenshots/light_chatScreen.png) | ![settings Light](screenshots/light_settings.png) |
 
 | Settings | Language Select | Profile | About |
 | :---: | :---: | :---: | :---: |
