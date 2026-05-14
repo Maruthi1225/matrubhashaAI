@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
         }
 
-        val sarvamApiKey = "sk_dudmpyme_AZ4EPFdXKLxRAYr1ukLFwdex"
+        val sarvamApiKey = "YOUR SARVAM AI API KEY"
         localAI = LocalAIService(this, sarvamApiKey)
 
         LanguageDetector.init(this)
