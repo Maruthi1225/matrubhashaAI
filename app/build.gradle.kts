@@ -46,6 +46,12 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     
+    // Material Components for XML themes
+    implementation("com.google.android.material:material:1.12.0")
+    
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    
     // Icons
     implementation(libs.androidx.material)
     implementation(libs.androidx.material.icons.core)

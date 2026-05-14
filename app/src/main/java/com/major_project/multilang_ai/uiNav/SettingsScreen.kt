@@ -5,10 +5,14 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,13 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.major_project.multilang_ai.voice.AppLanguage
-import com.major_project.multilang_ai.uiNav.UserPreferences
 import com.major_project.multilang_ai.voice.VoiceManager
 import com.major_project.multilang_ai.ui.theme.AppThemeColors
 
@@ -41,92 +45,106 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Settings", color = AppThemeColors.textColorPrimary()) },
+            LargeTopAppBar(
+                title = { 
+                    Text(
+                        "Settings", 
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            color = AppThemeColors.textColorPrimary()
+                        )
+                    ) 
+                },
                 navigationIcon = {
-                    TextButton(onClick = { navController.popBackStack() }) {
-                        Text("← Back", color = AppThemeColors.textColorPrimary())
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Back",
+                            tint = AppThemeColors.textColorPrimary()
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                )
             )
         },
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(gradient)
     ) { padding ->
 
-        // Main content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(gradient)
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // User Profile Section
+            // User Profile Section (Premium Look)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(28.dp),
                 color = AppThemeColors.cardColor(),
                 tonalElevation = 4.dp
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(24.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                    Surface(
+                        modifier = Modifier.size(72.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            modifier = Modifier.size(36.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                     
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(20.dp))
                     
                     Column {
                         val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "User"
                         Text(
                             text = displayName,
-                            color = AppThemeColors.textColorPrimary(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = AppThemeColors.textColorPrimary()
+                            )
                         )
                         Text(
-                            text = currentUser?.email ?: "Not logged in",
-                            color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f),
-                            fontSize = 14.sp
+                            text = currentUser?.email ?: "Anonymous User",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f)
                         )
                     }
                 }
             }
 
-            Text(
-                "Personalization",
-                color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp
-            )
+            SectionHeader("Personalization")
 
             AuroraSettingCard(
-                title = "Preferred Language",
-                value = AppLanguage.values()
+                title = "App Language",
+                subtitle = AppLanguage.values()
                     .firstOrNull { it.code == UserPreferences.getLanguage(navController.context) }?.displayName
-                    ?: "Telugu",
+                    ?: "Select Language",
+                icon = Icons.Default.Translate,
                 onClick = { showLangSheet = true }
             )
 
             AuroraToggle(
-                title = "Dark Mode",
+                title = "Dark Theme",
+                subtitle = "Toggle dark/light mode",
+                icon = if (darkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
                 checked = darkTheme,
                 onToggle = {
                     darkTheme = it
@@ -135,84 +153,72 @@ fun SettingsScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            SectionHeader("Account")
 
-            // Logout Button
-            Button(
+            AuroraSettingCard(
+                title = "Logout",
+                subtitle = "Sign out of your account",
+                icon = Icons.AutoMirrored.Filled.Logout,
+                color = MaterialTheme.colorScheme.error,
                 onClick = {
                     auth.signOut()
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.error),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("Logout", fontWeight = FontWeight.Bold)
-            }
+                }
+            )
 
+            Spacer(modifier = Modifier.height(24.dp))
+            
             Text(
-                "Matrubhasha AI v1.0",
+                "Matrubhasha AI v1.5",
+                style = MaterialTheme.typography.labelMedium,
                 color = AppThemeColors.textColorPrimary().copy(alpha = 0.4f),
-                fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Modal Bottom Sheet for language selection
         if (showLangSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showLangSheet = false },
-                tonalElevation = 8.dp,
-                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-                containerColor = AppThemeColors.cardColor(),
-                modifier = Modifier.fillMaxWidth()
+                containerColor = MaterialTheme.colorScheme.surface,
+                dragHandle = { BottomSheetDefaults.DragHandle() }
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 18.dp)
-                        .heightIn(min = 220.dp, max = 420.dp)
+                        .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Choose Language",
-                        color = AppThemeColors.textColorPrimary(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        "Choose Language",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = AppThemeColors.textColorPrimary()
+                        ),
+                        modifier = Modifier.padding(24.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     AppLanguage.values().forEach { lang ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    UserPreferences.setLanguage(navController.context, lang.code)
-                                    voice.init(lang.code)
-                                    showLangSheet = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = lang.displayName,
-                                color = AppThemeColors.textColorPrimary(),
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { showLangSheet = false }) {
-                            Text("Close", color = Color(0xFF00E676), fontWeight = FontWeight.SemiBold)
-                        }
+                        ListItem(
+                            headlineContent = { 
+                                Text(
+                                    lang.displayName,
+                                    color = AppThemeColors.textColorPrimary()
+                                ) 
+                            },
+                            leadingContent = { 
+                                RadioButton(
+                                    selected = lang.code == UserPreferences.getLanguage(navController.context),
+                                    onClick = null 
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                UserPreferences.setLanguage(navController.context, lang.code)
+                                voice.init(lang.code)
+                                showLangSheet = false
+                            }
+                        )
                     }
                 }
             }
@@ -221,60 +227,115 @@ fun SettingsScreen(
 }
 
 @Composable
-fun AuroraSettingCard(title: String, value: String?, onClick: () -> Unit) {
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelLarge.copy(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        ),
+        modifier = Modifier.padding(start = 8.dp)
+    )
+}
+
+@Composable
+fun AuroraSettingCard(
+    title: String, 
+    subtitle: String, 
+    icon: ImageVector, 
+    color: Color = Color.Unspecified,
+    onClick: () -> Unit
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 5.dp,
-        color = AppThemeColors.cardColor()
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = AppThemeColors.cardColor(),
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF00D4FF), Color(0xFF3A7BD5)).map { it.copy(alpha = 0.12f) }
-                    )
-                )
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(20.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
-            if (value != null)
-                Text(value, color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f), fontSize = 14.sp)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (color == Color.Unspecified) MaterialTheme.colorScheme.primary else color,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = if (color == Color.Unspecified) AppThemeColors.textColorPrimary() else color
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f)
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = AppThemeColors.textColorPrimary().copy(alpha = 0.3f)
+            )
         }
     }
 }
 
 @Composable
-fun AuroraToggle(title: String, checked: Boolean, onToggle: (Boolean) -> Unit) {
-    val glowColor by animateColorAsState(
-        if (checked) Color(0xFF00E676) else Color(0xFF607D8B),
-        animationSpec = tween(600)
-    )
-
+fun AuroraToggle(
+    title: String, 
+    subtitle: String, 
+    icon: ImageVector,
+    checked: Boolean, 
+    onToggle: (Boolean) -> Unit
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 5.dp,
-        color = AppThemeColors.cardColor()
+        shape = RoundedCornerShape(20.dp),
+        color = AppThemeColors.cardColor(),
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 18.dp, vertical = 14.dp)
+                .padding(20.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(title, color = AppThemeColors.textColorPrimary(), fontSize = 16.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(20.dp))
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = AppThemeColors.textColorPrimary()
+                        )
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f)
+                    )
+                }
+            }
             Switch(
                 checked = checked,
                 onCheckedChange = onToggle,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = glowColor,
-                    checkedTrackColor = glowColor.copy(alpha = 0.4f),
-                    uncheckedThumbColor = Color.LightGray,
-                    uncheckedTrackColor = Color.DarkGray
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary
                 )
             )
         }

@@ -1,10 +1,12 @@
 package com.major_project.multilang_ai.uiNav
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,15 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.major_project.multilang_ai.R
 import com.major_project.multilang_ai.sarvam.ChatRepository
 import com.major_project.multilang_ai.sarvam.ChatSession
 import com.major_project.multilang_ai.sarvam.LocalAIService
-import com.major_project.multilang_ai.sarvam.SarvamMessage
 import com.major_project.multilang_ai.ui.theme.AppThemeColors
 import com.major_project.multilang_ai.voice.VoiceManager
 import kotlinx.coroutines.launch
@@ -35,22 +38,27 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val chatRepo = remember { ChatRepository() }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var chatHistory by remember { mutableStateOf(emptyList<ChatSession>()) }
     var currentSession by remember { mutableStateOf<ChatSession?>(null) }
     val messages = remember { mutableStateListOf<ChatMessage>() }
     
     var selectedLanguage by remember { mutableStateOf(UserPreferences.getLanguage(navController.context)) }
-    val backgroundGradient = AppThemeColors.backgroundGradient()
+    var isListening by remember { mutableStateOf(false) }
+    var isThinking by remember { mutableStateOf(false) }
+    
+//    val backgroundGradient = AppThemeColors.backgroundGradient()
 
-    // State for renaming
+    // State for renaming/deleting
     var sessionToRename by remember { mutableStateOf<ChatSession?>(null) }
     var renameText by remember { mutableStateOf("") }
-
-    // State for deleting
     var sessionToDelete by remember { mutableStateOf<ChatSession?>(null) }
 
-    // Fetch history whenever the drawer is opened
+    val isDark = AppThemeColors.isDark()
+    val logoResId = if (isDark) com.major_project.multilang_ai.R.drawable.dark else R.drawable.light
+    val backgroundGradient = AppThemeColors.backgroundGradient()
+
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
             chatHistory = chatRepo.getChatHistory()
@@ -70,16 +78,17 @@ fun HomeScreen(
         localAI.setChatHistory(session.messages)
     }
 
-    // Rename Dialog
+    // Modern Dialogs
     if (sessionToRename != null) {
         AlertDialog(
             onDismissRequest = { sessionToRename = null },
-            title = { Text("Rename Chat", color = AppThemeColors.textColorPrimary()) },
+            title = { Text("Rename Chat", fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = renameText,
                     onValueChange = { renameText = it },
-                    label = { Text("New Title") },
+                    label = { Text("Session Name") },
+                    shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -97,25 +106,21 @@ fun HomeScreen(
                             sessionToRename = null
                         }
                     }
-                }) {
-                    Text("Save")
-                }
+                }) { Text("Rename") }
             },
             dismissButton = {
-                TextButton(onClick = { sessionToRename = null }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { sessionToRename = null }) { Text("Cancel") }
             },
-            containerColor = AppThemeColors.cardColor()
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
-    // Delete Dialog
     if (sessionToDelete != null) {
         AlertDialog(
             onDismissRequest = { sessionToDelete = null },
-            title = { Text("Delete Chat", color = AppThemeColors.textColorPrimary()) },
-            text = { Text("Are you sure you want to delete this chat?", color = AppThemeColors.textColorPrimary().copy(alpha = 0.8f)) },
+            title = { Text("Delete Chat?") },
+            text = { Text("This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -124,24 +129,18 @@ fun HomeScreen(
                             scope.launch {
                                 chatRepo.deleteChat(target.id)
                                 chatHistory = chatRepo.getChatHistory()
-                                if (currentSession?.id == target.id) {
-                                    startNewChat()
-                                }
+                                if (currentSession?.id == target.id) startNewChat()
                                 sessionToDelete = null
                             }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete", color = Color.White)
-                }
+                ) { Text("Delete") }
             },
             dismissButton = {
-                TextButton(onClick = { sessionToDelete = null }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { sessionToDelete = null }) { Text("Cancel") }
             },
-            containerColor = AppThemeColors.cardColor()
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
@@ -149,107 +148,87 @@ fun HomeScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = AppThemeColors.cardColor(),
-                drawerTonalElevation = 8.dp
+                drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerTonalElevation = 0.dp,
+                modifier = Modifier.width(320.dp)
             ) {
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                        .padding(24.dp),
+                    contentAlignment = Alignment.BottomStart
                 ) {
-                    Text("Chat History", style = MaterialTheme.typography.titleLarge, color = AppThemeColors.textColorPrimary())
-                    IconButton(onClick = { 
-                        startNewChat()
-                        scope.launch { drawerState.close() }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "New Chat", tint = MaterialTheme.colorScheme.primary)
+                    Column {
+                        Row(){
+                            Image(
+                                painter = painterResource(id = logoResId),
+                                contentDescription = "Matrubhasha AI Logo",
+                                modifier = Modifier.size(60.dp).align(Alignment.CenterVertically),
+                                contentScale = ContentScale.Fit
+                            )
+
+                            Column{
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    "MATRUBHASHA AI",
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
+                                )
+                                Text(
+                                    "The Indian Multilingual Voice Assistant",
+                                    fontSize = 12.sp,
+//                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            "Chat History",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-                HorizontalDivider(color = AppThemeColors.textColorPrimary().copy(alpha = 0.1f))
 
-                if (chatHistory.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No history found", color = AppThemeColors.textColorPrimary().copy(alpha = 0.6f))
+                Spacer(Modifier.height(12.dp))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    item {
+                        NavigationDrawerItem(
+                            label = { Text("New Chat", fontWeight = FontWeight.Bold) },
+                            selected = false,
+                            onClick = {
+                                startNewChat()
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = { Icon(Icons.Default.Add, null) },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
                     }
-                }
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(chatHistory) { session ->
                         var showMenu by remember { mutableStateOf(false) }
 
                         NavigationDrawerItem(
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (session.isPinned) {
-                                        Icon(
-                                            Icons.Default.PushPin,
-                                            contentDescription = "Pinned",
-                                            tint = Color(0xFF00E676),
-                                            modifier = Modifier.size(16.dp).padding(end = 8.dp)
-                                        )
-                                    }
                                     Text(
                                         text = session.title.ifEmpty { "Untitled Chat" },
                                         maxLines = 1,
                                         modifier = Modifier.weight(1f),
-                                        color = AppThemeColors.textColorPrimary()
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
-                                    Box {
-                                        IconButton(
-                                            onClick = { showMenu = true },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.MoreVert,
-                                                contentDescription = "Options",
-                                                tint = AppThemeColors.textColorPrimary().copy(alpha = 0.6f)
-                                            )
-                                        }
-                                        DropdownMenu(
-                                            expanded = showMenu,
-                                            onDismissRequest = { showMenu = false },
-                                            modifier = Modifier.background(AppThemeColors.cardColor())
-                                        ) {
-                                            DropdownMenuItem(
-                                                text = { Text(if (session.isPinned) "Unpin" else "Pin") },
-                                                onClick = {
-                                                    showMenu = false
-                                                    scope.launch {
-                                                        chatRepo.togglePin(session.id, !session.isPinned)
-                                                        chatHistory = chatRepo.getChatHistory()
-                                                    }
-                                                },
-                                                leadingIcon = {
-                                                    Icon(
-                                                        if (session.isPinned) Icons.Default.PushPin else Icons.Default.PushPin,
-                                                        contentDescription = null,
-                                                        tint = if (session.isPinned) Color(0xFF00E676) else AppThemeColors.textColorPrimary()
-                                                    )
-                                                }
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text("Rename") },
-                                                onClick = {
-                                                    showMenu = false
-                                                    renameText = session.title
-                                                    sessionToRename = session
-                                                },
-                                                leadingIcon = {
-                                                    Icon(Icons.Default.Edit, contentDescription = null)
-                                                }
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                                                onClick = {
-                                                    showMenu = false
-                                                    sessionToDelete = session
-                                                },
-                                                leadingIcon = {
-                                                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                                                }
-                                            )
-                                        }
+                                    if (session.isPinned) {
+                                        Icon(Icons.Default.PushPin, null, modifier = Modifier.size(14.dp), tint = Color(0xFF00E676))
                                     }
                                 }
                             },
@@ -258,11 +237,47 @@ fun HomeScreen(
                                 loadChat(session)
                                 scope.launch { drawerState.close() }
                             },
-                            colors = NavigationDrawerItemDefaults.colors(
-                                unselectedContainerColor = Color.Transparent,
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            ),
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            shape = RoundedCornerShape(16.dp),
+                            badge = {
+                                Box {
+                                    IconButton(onClick = { showMenu = true }) {
+                                        Icon(Icons.Default.MoreVert, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(if (session.isPinned) "Unpin" else "Pin") },
+                                            onClick = {
+                                                showMenu = false
+                                                scope.launch {
+                                                    chatRepo.togglePin(session.id, !session.isPinned)
+                                                    chatHistory = chatRepo.getChatHistory()
+                                                }
+                                            },
+                                            leadingIcon = { Icon(Icons.Default.PushPin, null) }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Rename") },
+                                            onClick = {
+                                                showMenu = false
+                                                renameText = session.title
+                                                sessionToRename = session
+                                            },
+                                            leadingIcon = { Icon(Icons.Default.Edit, null) }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                            onClick = {
+                                                showMenu = false
+                                                sessionToDelete = session
+                                            },
+                                            leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
+                                        )
+                                    }
+                                }
+                            }
                         )
                     }
                 }
@@ -270,86 +285,101 @@ fun HomeScreen(
         }
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                CenterAlignedTopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = AppThemeColors.textColorPrimary())
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                "Matrubhasha AI",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                if (currentSession == null) "New Conversation" else currentSession!!.title,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     },
-                    title = { Text("Matrubhasha AI", color = AppThemeColors.textColorPrimary(), fontWeight = FontWeight.Bold) },
-                    actions = {
-                        IconButton(onClick = {
-                            startNewChat()
-                        }) {
-                            Icon(Icons.Default.Add, contentDescription = "New Chat", tint = AppThemeColors.textColorPrimary())
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, "History")
                         }
-
+                    },
+                    actions = {
                         LanguageDropdown(
                             selectedLanguage = selectedLanguage,
                             onLanguageChange = {
                                 selectedLanguage = it
                                 UserPreferences.setLanguage(navController.context, it)
+                                voice.init(it)
                             }
                         )
-
                         IconButton(onClick = { navController.navigate("settings") }) {
-                            Image(
-                                painter = painterResource(id = R.drawable.settings), 
-                                contentDescription = "Settings",
-                                modifier = Modifier.size(24.dp)
-                            )
+                            Icon(Icons.Default.Settings, "Settings")
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                    )
                 )
             },
             containerColor = Color.Transparent,
             modifier = Modifier.background(backgroundGradient)
         ) { paddingValues ->
             VoiceOnlyChatScreen(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 chatMessages = messages,
-                onVoiceInput = { onRecognized ->
-                    voice.listen(
-                        onResult = { text, _ ->
-                            scope.launch {
-                                voice.stopListening()
-                                onRecognized(text)
+                isListening = isListening,
+                isThinking = isThinking,
+                onToggleListening = {
+                    if (isListening) {
+                        voice.stopListening()
+                        isListening = false
+                    } else {
+                        voice.listen(
+                            onResult = { userText, _ ->
+                                scope.launch {
+                                    voice.pauseTTS()
+                                    messages.add(ChatMessage(userText, true))
+                                    isThinking = true
+                                    
+                                    val reply = localAI.getResponse(userText, selectedLanguage)
+                                    isThinking = false
+                                    messages.add(ChatMessage(reply, false))
+                                    voice.speakInstant(reply, selectedLanguage)
+
+                                    val updatedHistory = localAI.getChatHistory()
+                                    val sessionToSave = currentSession?.copy(
+                                        title = if (currentSession == null) userText else currentSession!!.title,
+                                        messages = updatedHistory
+                                    ) ?: ChatSession(title = userText, messages = updatedHistory)
+
+                                    val savedId = chatRepo.saveChat(sessionToSave)
+                                    if (currentSession == null && savedId != null) {
+                                        currentSession = sessionToSave.copy(id = savedId)
+                                    }
+                                }
+                            },
+                            onError = { errorMsg ->
+                                scope.launch {
+                                    isThinking = false
+                                    snackbarHostState.showSnackbar(errorMsg)
+                                }
+                            },
+                            onListeningStateChanged = { listening ->
+                                isListening = listening
                             }
-                        },
-                        onError = { println("Voice Error: $it") }
-                    )
-                },
-                onSendMessage = { userText, onResponse ->
-                    scope.launch {
-                        voice.pauseTTS()
-                        
-                        // Add user message to the list
-                        messages.add(ChatMessage(userText, true))
-                        
-                        val reply = localAI.getResponse(userText, selectedLanguage)
-                        
-                        // Add AI reply to the list
-                        messages.add(ChatMessage(reply, false))
-
-                        onResponse(reply)
-                        voice.speakInstant(reply, selectedLanguage)
-
-                        val updatedMessages = localAI.getChatHistory()
-                        val sessionToSave = currentSession?.copy(
-                            title = if (currentSession == null) userText else currentSession!!.title,
-                            messages = updatedMessages
-                        ) ?: ChatSession(title = userText, messages = updatedMessages)
-
-                        val savedId = chatRepo.saveChat(sessionToSave)
-                        if (currentSession == null && savedId != null) {
-                            currentSession = sessionToSave.copy(id = savedId)
-                        }
+                        )
                     }
                 },
-                voice = voice,
-                selectedLanguage = selectedLanguage
+                onBubbleClick = { msg ->
+                    if (!msg.isUser) voice.resumeTTS(msg.text, selectedLanguage)
+                },
+                voice = voice
             )
         }
     }

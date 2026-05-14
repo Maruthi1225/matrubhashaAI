@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.android.gms.security.ProviderInstaller
 import com.major_project.multilang_ai.sarvam.LocalAIService
 import com.major_project.multilang_ai.uiNav.MainApp
@@ -19,6 +20,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var voice: VoiceManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Handle the splash screen transition.
+        installSplashScreen()
+        
         super.onCreate(savedInstanceState)
 
         // Initialize Google Play Services Security Provider
