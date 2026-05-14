@@ -63,7 +63,7 @@ Matrubhasha AI is a premium, multilingual Indian AI assistant application built 
 ### Steps to Run
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/multilang_AI.git
+   git clone https://github.com/maruthi1225/matrubhashaAI.git
    ```
 2. **Add Firebase**:
     - Place your `google-services.json` in the `app/` directory.
